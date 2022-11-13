@@ -12,6 +12,7 @@ Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 NestedGraphs = "03c36417-ddab-428a-818d-5359aee292ef"
 
 [compat]
+GraphMakie = "0.4"
 julia = "1"
 
 [extras]
