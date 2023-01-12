@@ -14,7 +14,7 @@ NestedGraphs = "03c36417-ddab-428a-818d-5359aee292ef"
 Colors = "0.12"
 GraphMakie = "0.4"
 Graphs = "1"
-Makie = "0.18"
+Makie = "0.18, 0.19"
 julia = "1"
 
 [extras]
