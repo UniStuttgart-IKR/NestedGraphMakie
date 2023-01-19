@@ -1,6 +1,6 @@
 module NestedGraphMakie
 
-using Graphs, Makie, Colors
+using Graphs, NestedGraphs, Makie, Colors, NetworkLayout
 import GraphMakie
 
 export ngraphplot
