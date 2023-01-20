@@ -2,7 +2,7 @@
 
 julia_version = "1.8.4"
 manifest_format = "2.0"
-project_hash = "40d9beb83941a5300040cad41a3082fc8667f69b"
+project_hash = "4f31d843573a2d0b80bff12a36b5eb0250d875df"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -755,6 +755,12 @@ version = "0.3.4"
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 version = "2022.2.1"
 
+[[deps.MultiKDE]]
+deps = ["Distributions"]
+git-tree-sha1 = "8a48220d6d724d2b2bf3aaa95384eade42905031"
+uuid = "77543b7f-bd95-4024-91c1-46775346e0e7"
+version = "0.1.1"
+
 [[deps.NaNMath]]
 deps = ["OpenLibm_jll"]
 git-tree-sha1 = "a7c3d1da1189a1c2fe843a3bfa04d18d20eb3211"
@@ -762,7 +768,7 @@ uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
 version = "1.0.1"
 
 [[deps.NestedGraphMakie]]
-deps = ["Colors", "GraphMakie", "Graphs", "Makie", "NestedGraphs", "NetworkLayout"]
+deps = ["Colors", "GraphMakie", "Graphs", "Makie", "MultiKDE", "NestedGraphs", "NetworkLayout"]
 path = ".."
 uuid = "6f6f4c20-e954-4c6d-a185-c2fbf890196e"
 version = "0.1.0"
