@@ -17,13 +17,23 @@ Plots a NestedGraph. Actually decorates `GraphMakie.graphplot` with some extra f
         multilayer = false,
         multilayer_dist = Makie.automatic,
         layout = Spring(),
-        fold_graphs = [Int[]],
+        fold_graphs = Vector{Vector{Int}}(),
         show_subgraph_regions = false,
     )
 end
 
 function Makie.plot!(cgp::NGraphPlot)
     ngraph = cgp[:ngraph]
+    flatgrovmapo = @lift begin
+        if isempty($(cgp.fold_graphs))
+            $(ngraph).flatgr, vertices($(ngraph))
+        else
+            foldedgr, vfoldmap = NestedGraphs.getfoldedgraph($(cgp.ngraph), $(cgp.fold_graphs))
+        end
+    end
+    flatgro = @lift $(flatgrovmapo)[1]
+    vmapo = @lift $(flatgrovmapo)[2]
+
     nodecolors = @lift begin
         ngr = $(ngraph)
         nodecolors = Vector{Color}()
@@ -31,7 +41,6 @@ function Makie.plot!(cgp::NGraphPlot)
             return [$(cgp.colors)[ngr.vmap[verts][1]] for verts in vertices(ngr)]
         else
             if $(cgp.show_subgraph_regions)
-#                distcolors = Colors.distinguishable_colors(NestedGraphs.gettotalsubgraphs(ngr)  + 3, [RGB(1,1,1), RGB(0,0,0)])[3:end]
                 distcolors = Colors.distinguishable_colors(NestedGraphs.gettotalsubgraphs(ngr), [RGB(1,1,1), RGB(0,0,0)]; dropseed=true)
             else
                 distcolors = Colors.distinguishable_colors(length(ngr.grv))
@@ -40,14 +49,13 @@ function Makie.plot!(cgp::NGraphPlot)
         end
     end
 
-    # TODO use Observables
     if cgp.multilayer[]
         nothing
-        sg, mlvertices = NestedGraphs.getmlsquashedgraph(ngraph[])
-        flatgr = ngraph[].flatgr
+        mlvertices = @lift NestedGraphs.getmlvertices($(ngraph))
 
         vposmlo = @lift begin
-            vpos = $(cgp.layout)(adjacency_matrix(sg))
+            sg,_ = NestedGraphs.getmlsquashedgraph($(ngraph))
+            $(cgp.layout)(adjacency_matrix(sg))
         end
 
         multilayerdisto = @lift begin
@@ -58,38 +66,43 @@ function Makie.plot!(cgp::NGraphPlot)
             end
         end
 
-        fixlays = [let
-            mlvertexind = findfirst(mlverts -> v ∈ mlverts, mlvertices)
-            fixlayout = vposmlo[][mlvertexind] .+ Point2{Float64}([0, (vm[1]-1)*multilayerdisto[]])
-        end for (v,vm) in enumerate(ngraph[].vmap)]
+        fixlays = @lift begin
+            [let
+                 mlvertexind = findfirst(mlverts -> v ∈ mlverts, $(mlvertices))
+                fixlayout = $(vposmlo)[mlvertexind] .+ Point2{Float64}([0, (vm[1]-1)*$(multilayerdisto)])
+            end for (v,vm) in enumerate($(ngraph).vmap)] |> fixedlayout
+        end
 
-        solidvsdashedgestyle = [NestedGraphs.issamesubgraph(ngraph[], e) ? :solid : :dash for e in edges(ngraph[])]
-        GraphMakie.graphplot!(cgp, flatgr; node_color=nodecolors[], cgp.attributes..., layout=fixedlayout(fixlays), edge_plottype=:beziersegments, edge_attr=(linestyle=solidvsdashedgestyle, ) )
+        solidvsdashedgestyle = @lift [NestedGraphs.issamesubgraph($(ngraph), e) ? :solid : :dash for e in edges($(ngraph))]
+        GraphMakie.graphplot!(cgp, ngraph; node_color=nodecolors[], cgp.attributes..., layout=fixlays, edge_plottype=:beziersegments, edge_attr=(linestyle=solidvsdashedgestyle, ) )
     elseif cgp.show_subgraph_regions[]
-        subgraphs = NestedGraphs.getallsubgraphpaths(ngraph[])
-        sort!(subgraphs, by=x->length(x))
-        subverts = vertices.([ngraph[]], subgraphs)
-
+        subverts = @lift begin
+            subgraphs = NestedGraphs.getallsubgraphpaths($ngraph)
+            sort!(subgraphs, by=x->length(x))
+            vertices.([$(ngraph)], subgraphs)
+        end
         vposo = @lift begin
             vpos = $(cgp.layout)(adjacency_matrix(ngraph[].flatgr))
         end
 
-        observations = [vposo[][verts] for verts in subverts] 
+        observations = @lift [$(vposo)[verts] for verts in $(subverts)] 
         dims = [ContinuousDim(), ContinuousDim()]
-        x1_range = LinRange(minimum(getindex.(vposo[], 1)) - 0.50*getmaximumxdist(vposo[]), maximum(getindex.(vposo[], 1)) + 0.50*getmaximumxdist(vposo[]), 100)
-        x2_range = LinRange(minimum(getindex.(vposo[], 2)) - 0.50*getmaximumydist(vposo[]), maximum(getindex.(vposo[], 2)) + 0.50*getmaximumydist(vposo[]), 100)
-        x_grid = [[_x1, _x2] for _x1 in x1_range for _x2 in x2_range]
-        bw = [0.8, 0.8]
+        x1_range = @lift LinRange(minimum(getindex.($(vposo), 1)) - 0.50*getmaximumxdist($(vposo)), maximum(getindex.($(vposo), 1)) + 0.50*getmaximumxdist($(vposo)), 100)
+        x2_range = @lift LinRange(minimum(getindex.($(vposo), 2)) - 0.50*getmaximumydist($(vposo)), maximum(getindex.($(vposo), 2)) + 0.50*getmaximumydist($(vposo)), 100)
+        x_grid = @lift [[_x1, _x2] for _x1 in $(x1_range) for _x2 in $(x2_range)]
+        x_grid1 = @lift getindex.($(x_grid), 1)
+        x_grid2 = @lift getindex.($(x_grid), 2)
+        bw = [0.8, 0.8] # parameters 
 
-        for i in eachindex(observations)
-            kde = KDEMulti(dims, bw, Vector{Vector{Float64}}(observations[i]))
-            y = [MultiKDE.pdf(kde, _x) for _x in x_grid]
-            cr = RGBAf.(Colors.coloralpha.(to_colormap(range(color("white"), nodecolors[][i])), 1))
-            contour_plot = contour!(cgp, getindex.(x_grid,1), getindex.(x_grid,2), y; levels=4, colormap=cr)
+        for i in eachindex(observations[])
+            kde = @lift KDEMulti(dims, bw, Vector{Vector{Float64}}($(observations)[i]))
+            y = @lift [MultiKDE.pdf($(kde), _x) for _x in $(x_grid)]
+            cr = @lift RGBAf.(Colors.coloralpha.(to_colormap(range(color("white"), $(nodecolors)[i])), 1))
+            contour_plot = contour!(cgp, x_grid1, x_grid2, y; levels=4, colormap=cr)
         end
-        GraphMakie.graphplot!(cgp, ngraph[]; merge((node_color=:black,), NamedTuple(cgp.attributes))...)
+        GraphMakie.graphplot!(cgp, ngraph; merge((node_color=:black,), NamedTuple(cgp.attributes))...)
     else
-        GraphMakie.graphplot!(cgp, ngraph[]; merge((node_color=nodecolors,), NamedTuple(cgp.attributes))...)
+        GraphMakie.graphplot!(cgp, flatgro; merge((node_color=nodecolors,), NamedTuple(cgp.attributes))...)
     end
     return cgp
 end

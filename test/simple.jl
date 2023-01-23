@@ -8,7 +8,12 @@
     ng1 = NestedGraph([g1,g2], [((1,1), (2,1))])
     ng2 = NestedGraph([g3,g4], [((1,2), (2,2)), ((1,3), (2,3))])
     ngm = NestedGraph([ng1, ng2], [((1,1),(2,1)), ((1,5),(2,2))], both_ways=true)
+
     f,_,_ = ngraphplot(ngm)
     counter = length(readdir(TMPDIR))
     save(joinpath(TMPDIR, "test-$(counter+1).png"), f)
+
+    f2,_,_ = ngraphplot(ngm, show_subgraph_regions=true)
+    counter = length(readdir(TMPDIR))
+    save(joinpath(TMPDIR, "test-$(counter+1).png"), f2)
 end
