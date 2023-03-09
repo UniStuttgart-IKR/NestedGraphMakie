@@ -16,6 +16,7 @@ Plots a NestedGraph. Actually decorates `GraphMakie.graphplot` with some extra f
         colors = Makie.automatic,
         multilayer = false,
         multilayer_dist = Makie.automatic,
+        multilayer_vertices = Makie.automatic,
         layout = Spring(),
         fold_graphs = Vector{Vector{Int}}(),
         show_subgraph_regions = false,
@@ -23,6 +24,11 @@ Plots a NestedGraph. Actually decorates `GraphMakie.graphplot` with some extra f
 end
 
 function Makie.plot!(cgp::NGraphPlot)
+    GraphMakie.graphplot!(cgp, cgp[:ngraph]; cgp.attributes...)
+    cgp
+end
+
+function Makie.plot!(cgp::NGraphPlot{<:Tuple{<:NestedGraph}})
     ngraph = cgp[:ngraph]
     flatgrovmapo = @lift begin
         if isempty($(cgp.fold_graphs))
@@ -41,20 +47,25 @@ function Makie.plot!(cgp::NGraphPlot)
             return [$(cgp.colors)[ngr.vmap[verts][1]] for verts in vertices(ngr)]
         else
             if $(cgp.show_subgraph_regions)
-                distcolors = Colors.distinguishable_colors(NestedGraphs.gettotalsubgraphs(ngr), [RGB(1,1,1), RGB(0,0,0)]; dropseed=true)
+                distcolors = Colors.distinguishable_colors(NestedGraphs.gettotalsubgraphs(ngr), [RGB(1,1,1), RGB(0,0,0), RGB(1,1,0)]; dropseed=true)
             else
-                distcolors = Colors.distinguishable_colors(length(ngr.grv))
+                distcolors = Colors.distinguishable_colors(length(ngr.grv), [RGB(1,1,1)]; dropseed=true)
                 [distcolors[ngr.vmap[verts][1]] for verts in vertices(ngr)]
             end
         end
     end
 
     if cgp.multilayer[]
-        nothing
-        mlvertices = @lift NestedGraphs.getmlvertices($(ngraph))
+        mlvertices = @lift begin
+            if $(cgp.multilayer_vertices) == Makie.automatic
+                NestedGraphs.getmlvertices($(ngraph))
+            else
+                $(cgp.multilayer_vertices)
+            end
+        end
 
         vposmlo = @lift begin
-            sg,_ = NestedGraphs.getmlsquashedgraph($(ngraph))
+            sg,_ = NestedGraphs.getsquashedgraph($(ngraph), $(mlvertices))
             $(cgp.layout)(adjacency_matrix(sg))
         end
 
@@ -66,6 +77,10 @@ function Makie.plot!(cgp::NGraphPlot)
             end
         end
 
+        edgecolors = @lift begin
+            [$(nodecolors)[src(e)] for e in edges($(ngraph))]
+        end
+
         fixlays = @lift begin
             [let
                  mlvertexind = findfirst(mlverts -> v ∈ mlverts, $(mlvertices))
@@ -74,7 +89,7 @@ function Makie.plot!(cgp::NGraphPlot)
         end
 
         solidvsdashedgestyle = @lift [NestedGraphs.issamesubgraph($(ngraph), e) ? :solid : :dash for e in edges($(ngraph))]
-        GraphMakie.graphplot!(cgp, ngraph; node_color=nodecolors[], cgp.attributes..., layout=fixlays, edge_plottype=:beziersegments, edge_attr=(linestyle=solidvsdashedgestyle, ) )
+        GraphMakie.graphplot!(cgp, ngraph; node_color=nodecolors, edge_color=edgecolors,cgp.attributes..., layout=fixlays, edge_plottype=:beziersegments, edge_attr=(linestyle=solidvsdashedgestyle, ) )
     elseif cgp.show_subgraph_regions[]
         subverts = @lift begin
             subgraphs = NestedGraphs.getallsubgraphpaths($ngraph)
