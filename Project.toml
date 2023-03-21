@@ -13,11 +13,14 @@ NestedGraphs = "03c36417-ddab-428a-818d-5359aee292ef"
 NetworkLayout = "46757867-2c16-5918-afeb-47bfcb05e46a"
 
 [compat]
-Colors = "0.12"
+julia = "1.8"
+Colors = "0.12.10"
 GraphMakie = "0.4, 0.5"
-Graphs = "1"
+Graphs = "1.8"
 Makie = "0.18, 0.19"
-julia = "1"
+MultiKDE = "0.1"
+NestedGraphs = "0.1.1"
+NetworkLayout = "0.4.5"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
