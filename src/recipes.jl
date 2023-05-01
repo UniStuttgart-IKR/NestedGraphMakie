@@ -8,7 +8,7 @@ Plots a NestedGraph. Actually decorates `GraphMakie.graphplot` with some extra f
 - `colors=automatic`: Vector of colors for the 1st-level subgraphs
 - `multilayer=false`: Plot 1st-level subgraphs in a multilayer fashion
 - `multilayer_dist=automatic`: how far away should the layer of the graph be
-- `fold_graphs=[Int[]]`: choose which graphs not to unfold
+- `fold_graphs=[Int[]]`: choose which graphs not to unfold (experimental)
 - `show_subgraph_regions=false` depicts all subgraphs in the plot
 """
 @recipe(NGraphPlot, ngraph) do scene

@@ -5,6 +5,7 @@ version = "0.1.0"
 
 [deps]
 Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 GraphMakie = "1ecd5474-83a3-4783-bb4f-06765db800d2"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
@@ -13,14 +14,15 @@ NestedGraphs = "03c36417-ddab-428a-818d-5359aee292ef"
 NetworkLayout = "46757867-2c16-5918-afeb-47bfcb05e46a"
 
 [compat]
-julia = "1.8"
+DocStringExtensions = "0.9"
 Colors = "0.12.10"
 GraphMakie = "0.4, 0.5"
-Graphs = "1.8"
+Graphs = "1"
 Makie = "0.18, 0.19"
 MultiKDE = "0.1"
 NestedGraphs = "0.1.1"
 NetworkLayout = "0.4.5"
+julia = "1.8"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

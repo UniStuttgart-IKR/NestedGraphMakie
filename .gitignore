@@ -1,3 +1,4 @@
 /Manifest.toml
 /assets/tmp/*
 /test/livetest.jl
+/docs/build/

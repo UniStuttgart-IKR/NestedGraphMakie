@@ -1,0 +1,4 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+NestedGraphMakie = "6f6f4c20-e954-4c6d-a185-c2fbf890196e"
+NestedGraphs = "03c36417-ddab-428a-818d-5359aee292ef"
