@@ -4,7 +4,7 @@ A package for [NestedGraphs.jl](https://github.com/UniStuttgart-IKR/NestedGraphs
 
 This package exports `ngraphplot`, which provides some extra features on top of `GraphMakie.graphplot`.
 All features of `GraphMakie.graphplot` can be accesssed whatsoever.
-See the [API](github.com/UniStuttgart-IKR/NestedGraphMakie.jl.git/API/) docs.
+See the [API](https://unistuttgart-ikr.github.io/NestedGraphMakie.jl/dev/API/) docs.
 
 Some examples of `NestedGraph` visualizations:
 ```julia
